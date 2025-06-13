@@ -142,7 +142,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
             <div class="flex flex-col md:flex-row items-center justify-between">
                 <div class="md:w-1/2 mb-10 md:mb-0">
-                    <h1 class="text-4xl md:text-5xl font-bold mb-4">Welcome to Mini Forum</h1>
+                    <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                    Welcome to <span class="text-yellow-300">Mini Forum</span>
+                </h1>
                     <p class="text-xl mb-8">Join our community to discuss ideas, share knowledge, and connect with others.</p>
 
                     @guest
@@ -170,11 +172,11 @@
     </div>
 
     <!-- Features Section -->
-    <div class="py-16 bg-white">
+    <div class="py-16 bg-black text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900">Why Join Our Community?</h2>
-                <p class="mt-4 text-xl text-gray-600">Discover the benefits of being part of our forum</p>
+                <h2 class="text-3xl font-bold text-white">Why Join Our Community?</h2>
+                <p class="mt-4 text-xl text-white">Discover the benefits of being part of our forum</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
