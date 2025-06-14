@@ -29,6 +29,17 @@ Route::middleware('auth')->group(function () {
     // Forum index - now requires auth
 
 
+    // Topic routes - all require auth
+    Route::get('/topic/{topic}', [TopicController::class, 'show'])->name('topic.show');
+    Route::get('/create-topic', [TopicController::class, 'create'])->name('topic.create');
+    Route::post('/topics', [TopicController::class, 'store'])->name('topic.store');
+;
+
+    // Reply routes
+    Route::post('/topic/{topic}/reply', [ReplyController::class, 'store'])->name('reply.store');
+
+
+
 
     // User dashboard routes
     Route::prefix('dashboard')->name('user.')->group(function () {
