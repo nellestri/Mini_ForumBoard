@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\Topic;
-use App\Models\Reply;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -21,29 +21,18 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Enhanced user statistics
-        $topicsCount = $user->topics()->count();
-        $repliesCount = $user->replies()->count();
-        $totalViews = $user->topics()->sum('views');
-
-        // Additional stats
-        $popularTopics = $user->topics()->where('views', '>', 10)->count();
-        $recentActivity = $user->topics()->where('created_at', '>=', now()->subDays(7))->count() +
-                         $user->replies()->where('created_at', '>=', now()->subDays(7))->count();
-
+        // User statistics
         $stats = [
-            'topics_count' => $topicsCount,
-            'replies_count' => $repliesCount,
-            'total_views' => $totalViews,
-            'popular_topics' => $popularTopics,
-            'recent_activity' => $recentActivity,
-            'avg_views_per_topic' => $topicsCount > 0 ? round($totalViews / $topicsCount, 1) : 0,
+            'topics_count' => $user->topics()->count(),
+            'replies_count' => $user->replies()->count(),
+            'total_views' => $user->topics()->sum('views'),
+            'pinned_topics' => $user->topics()->where('is_pinned', true)->count(),
         ];
 
-        // Recent topics with enhanced data
+        // Recent topics with replies count and latest reply
         $recent_topics = $user->topics()
             ->withCount('replies')
-            ->with(['user', 'latestReply'])
+            ->with(['user', 'latestReply.user'])
             ->latest()
             ->take(5)
             ->get();
@@ -67,8 +56,7 @@ class UserController extends Controller
 
         $topics = $user->topics()
             ->withCount('replies')
-            ->with('latestReply.user')
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->paginate(10);
 
         return view('user.topics', compact('topics'));
@@ -80,12 +68,82 @@ class UserController extends Controller
         $user = Auth::user();
 
         $replies = $user->replies()
-            ->with(['topic' => function($query) {
-                $query->select('id', 'title', 'user_id');
-            }])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->with('topic')
+            ->latest()
+            ->paginate(10);
 
         return view('user.replies', compact('replies'));
+    }
+
+    // Show any user's profile (public view)
+    public function showProfile(User $user): View
+    {
+        $stats = [
+            'topics_count' => $user->topics()->count(),
+            'replies_count' => $user->replies()->count(),
+            'total_views' => $user->topics()->sum('views'),
+            'member_since' => $user->created_at,
+            'last_active' => $user->last_active,
+        ];
+
+        // Recent topics by this user
+        $recent_topics = $user->topics()
+            ->withCount('replies')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        // Recent replies by this user
+        $recent_replies = $user->replies()
+            ->with('topic')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('user.profile', compact('user', 'stats', 'recent_topics', 'recent_replies'));
+    }
+
+    // Show current user's own profile
+    public function profile(): View
+    {
+        return $this->showProfile(Auth::user());
+    }
+
+    // Edit current user's profile
+    public function editProfile(): View
+    {
+        $user = Auth::user();
+        return view('user.edit-profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'bio' => 'nullable|string|max:500',
+            'location' => 'nullable|string|max:255',
+            'website' => 'nullable|url|max:255',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $data = $request->only(['name', 'bio', 'location', 'website']);
+
+        // Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            // Delete old profile picture if exists
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+
+            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+            $data['profile_picture'] = $path;
+        }
+
+        $user->update($data);
+
+        return redirect()->route('user.profile', $user)->with('success', 'Profile updated successfully!');
     }
 }
