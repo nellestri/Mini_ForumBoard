@@ -13,8 +13,13 @@ class Reply extends Model
     protected $fillable = [
         'content',
         'topic_id',
-        'user_id'
+        'user_id',
+        'images'
     ];
+    protected $casts = [
+        'images' => 'array',
+    ];
+
 
     public function topic(): BelongsTo
     {
@@ -25,4 +30,28 @@ class Reply extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+     /**
+     * Get the image URLs for the reply.
+     */
+    public function getImageUrlsAttribute(): array
+    {
+        if (!$this->images || !is_array($this->images)) {
+            return [];
+        }
+
+        return collect($this->images)->map(function ($image) {
+            return url('storage/' . $image);
+        })->toArray();
+    }
+
+    /**
+     * Check if reply has images
+     */
+    public function hasImages(): bool
+    {
+        return !empty($this->images) && is_array($this->images) && count($this->images) > 0;
+    }
 }
+
+

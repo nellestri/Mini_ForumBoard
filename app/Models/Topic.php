@@ -19,10 +19,11 @@ class Topic extends Model
         'user_id',
         'is_pinned',
         'is_locked',
-        'views'
+        'images'
     ];
 
     protected $casts = [
+        'images' => 'array',
         'is_pinned' => 'boolean',
         'is_locked' => 'boolean',
     ];
@@ -46,6 +47,29 @@ class Topic extends Model
     {
         $this->increment('views');
     }
+
+    /**
+     * Get the image URLs for the topic.
+     */
+    public function getImageUrlsAttribute(): array
+    {
+        if (!$this->images || !is_array($this->images)) {
+            return [];
+        }
+
+        return collect($this->images)->map(function ($image) {
+            return url('storage/' . $image);
+        })->toArray();
+    }
+
+    /**
+     * Check if topic has images
+     */
+    public function hasImages(): bool
+    {
+        return !empty($this->images) && is_array($this->images) && count($this->images) > 0;
+    }
+
 
     public function scopePinned($query)
     {
