@@ -174,7 +174,7 @@
                                class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-700 file:text-blue-100 hover:file:bg-blue-600"
                                onchange="previewReplyImages(this)">
                         @error('images.*')
-                            <p class="mt-1 text-sm text-red-400">{{ $message }}</p>
+                            <p class="mt-1 text-sm text-red-400">{{ $messages }}</p>
                         @enderror
 
                         <!-- Reply Image Preview -->
