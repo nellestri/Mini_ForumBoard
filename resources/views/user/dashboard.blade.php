@@ -37,7 +37,10 @@
                         <div class="text-sm text-gray-400">Views</div>
                     </div>
                     <div class="bg-gray-750 border border-gray-600 rounded-lg p-4 text-center hover:bg-gray-700 transition-colors">
-                        <div class="text-2xl font-semibold text-gray-100">{{ Auth::user()->created_at->diffInDays(now()) }}</div>
+                        <div class="text-2xl font-semibold text-gray-100">
+                                                   {{ Auth::user()->created_at->diffForHumans() }}
+</div>
+
                         <div class="text-sm text-gray-400">Days active</div>
                     </div>
                 </div>
